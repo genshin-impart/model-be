@@ -1,0 +1,14 @@
+# Editor directories and files
+.vscode/
+.idea/
+
+# Development
+.env
+*.db
+logs/
+
+# Cached files
+*__pycache__
+
+# Backup files
+bak/
