@@ -21,6 +21,14 @@ class Admin(db.Model):
         super(Admin, self).__init__(**kwargs)
         self.set_password()
 
+    # ? DEBUG
+    def desc(self):
+        print('------------------------------')
+        print('Admin    | ', self.id)
+        print('username | ', self.username)
+        print('pwd_hash | ', self.pwd_hash)
+        print('------------------------------')
+
     def set_password(self, password: str = 'admin'):
         self.pwd_hash = generate_password_hash(password)
 
@@ -30,6 +38,14 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(USERNAME_LEN), unique=True)
     pwd_hash = db.Column(db.String(128))
+
+    # ? DEBUG
+    def desc(self):
+        print('------------------------------')
+        print('User     | ', self.id)
+        print('username | ', self.username)
+        print('pwd_hash | ', self.pwd_hash)
+        print('------------------------------')
 
     # ? Self methods
     def set_username(self, username: str):
@@ -62,6 +78,17 @@ class PaddleModel(db.Model):
     def __init__(self, **kwargs):
         super(PaddleModel, self).__init__(**kwargs)
 
+    # ? DEBUG
+    def desc(self):
+        print('------------------------------')
+        print('PaddleModel    | ', self.id)
+        print('description    | ', self.description)
+        print('in_chunk_len   | ', self.in_chunk_len)
+        print('out_chunk_len  | ', self.out_chunk_len)
+        print('batch_size     | ', self.batch_size)
+        print('learning_rate  | ', self.learning_rate)
+        print('------------------------------')
+
 
 class BindingModel(db.Model):
     """ 绑定了数据的模型 """
@@ -75,6 +102,8 @@ class BindingModel(db.Model):
         READY = 1
         TRAIN = 2
         FINISH = 3
+
+    model_status = {1: 'READY', 2: 'TRAIN', 3: 'FINISH'}
 
     # * BindingModel ~ User: n ~ 1
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -90,6 +119,18 @@ class BindingModel(db.Model):
         if not os.path.isdir(data_path):
             raise "invalid data path!"
         self.data_path = data_path
+
+    # ? DEBUG
+    def desc(self):
+        print('------------------------------')
+        print('Binding   | ' % self.id)
+        print('data_path | ', self.data_path)
+        print('data_cols | ', self.data_cols)
+        print('status    | ', BindingModel.model_status[self.status])
+        print('***** foreign keys *****')
+        print('user_id   | ', self.user_id)
+        print('model_id  | ', self.model_id)
+        print('------------------------------')
 
     def set_status(self, status):
         if status not in BindingModel.ModelStatus:

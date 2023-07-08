@@ -8,7 +8,7 @@ from flask import Flask, request
 
 from backend.blueprints.user import user_bp
 from backend.blueprints.model import model_bp
-from backend.models import User, PaddleModel, BindingModel
+from backend.models import Admin, User, PaddleModel, BindingModel
 from backend.extensions import db
 from backend.settings import configs
 
@@ -48,6 +48,8 @@ def register_logging(app: Flask):
 
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
+    if not os.path.exists(os.path.join(basedir, 'logs')):
+        os.mkdir(os.path.join(basedir, 'logs'))
     file_handler = RotatingFileHandler(
         os.path.join(basedir, 'logs/wpf_system.log'), maxBytes=10 * 1024 * 1024, backupCount=10
     )
@@ -71,6 +73,67 @@ def register_commands(app: Flask):
             click.echo('Drop tables.')
         db.create_all()
         click.echo('Initialized database.')
+
+    @app.cli.command()
+    @click.option('--username', prompt=True, help='THe username used to login')
+    @click.option(
+        '--password', prompt=True, hide_input=True, confirmation_prompt=True, help='The password used to login'
+    )
+    def init(username, password):
+        """Building project just for you."""
+        click.echo('Initializing the database ...')
+        db.create_all()
+
+        admin = Admin().query.first()
+        if admin is not None:
+            click.echo('The administrator already exists, updating ...')
+            admin.username = username
+            admin.set_password(password)
+        else:
+            click.echo('Creating the temporary administrator account ...')
+            admin = Admin(username=username)
+            admin.set_password(password)
+            db.session.add(admin)
+
+        paddle_model = PaddleModel.query.first()
+        if paddle_model is None:
+            click.echo('Creating the default Paddle model ...')
+            paddle_model = PaddleModel(
+                description='Test default Paddle model',
+                in_chunk_len=32,
+                out_chunk_len=32,
+                batch_size=32,
+                learning_rate=0.001
+            )
+            db.session.add(paddle_model)
+
+        db.session.commit()
+        click.echo('Done.')
+
+    @app.cli.command()
+    @click.option('--user', default=3, help='Quantity of users, default is 3.')
+    @click.option('--model', default=2, help='Quantity of models, default is 2.')
+    @click.option('--bindings', default=0, help='Quantity of bindings, default is 0.')
+    def forge(user, model, bindings):
+        """Generate fake data."""
+        from backend.fakes import fake_admin, fake_users, fake_models, fake_bindings
+
+        db.drop_all()
+        db.create_all()
+
+        click.echo('Generating the administrator ...')
+        fake_admin()
+
+        click.echo('Generating %d users ...' % user)
+        fake_users()
+
+        click.echo('Generating %d models ...' % model)
+        fake_models()
+
+        click.echo('Generating %d bindings ...' % bindings)
+        fake_bindings()
+
+        click.echo('Done.')
 
 
 def register_extensions(app: Flask):

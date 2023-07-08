@@ -12,3 +12,6 @@ logs/
 
 # Backup files
 bak/
+
+# Fake data
+data/
