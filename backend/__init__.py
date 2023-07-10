@@ -9,7 +9,7 @@ from flask import Flask, request
 from backend.blueprints.user import user_bp
 from backend.blueprints.model import model_bp
 from backend.models import Admin, User, PaddleModel, BindingModel
-from backend.extensions import db
+from backend.extensions import db, sess
 from backend.settings import configs
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -139,6 +139,7 @@ def register_commands(app: Flask):
 def register_extensions(app: Flask):
     """ 扩展模块 """
     db.init_app(app) # init database
+    # sess.init_app(app) # init session
 
 
 def register_blueprints(app: Flask):
@@ -149,4 +150,4 @@ def register_blueprints(app: Flask):
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
