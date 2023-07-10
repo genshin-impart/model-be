@@ -10,6 +10,7 @@ from backend.extensions import db
 import backend.utils.create as c_utils
 import backend.utils.model as m_utils
 import backend.utils.file as f_utils
+import backend.utils.core as core_utils
 
 model_bp = Blueprint('model', __name__)
 
@@ -43,6 +44,7 @@ def fetch_model_list():
     # ? DEBUG
     print("model_list:\n", model_list)
     print("length of model_info_list: ", len(model_info_list))
+    print("model_info_list:\n", model_info_list)
     return jsonify({'code': 0, 'msg': 'success', 'data': model_info_list})
 
 
@@ -64,13 +66,27 @@ def upload_file():
     print("filename: {}".format(file.filename))
     # 保存文件到缓存路径
     return_code, file_uuid = f_utils.cache_file(file)
+    response_data = {
+        'fileId': file_uuid,
+        'setId': '',
+        'columns': [],
+        'preview': [[]],
+        'merged': [[]],
+    }
+    print('====================')
+    print('return_code: ', return_code)
+    print('file_uuid: ', file_uuid)
+    print('====================')
     if return_code == 0:
         update_map(file_uuid, file.filename)
-        return jsonify({'code': 0, 'msg': 'success', 'uuid': file_uuid})
+        print('file_to_uuid:\n', file_to_uuid)
+        return jsonify({'code': 0, 'msg': 'success', 'data': response_data})
     elif return_code == 1:
-        return jsonify({'code': 1, 'msg': 'duplicated file', 'uuid': file_to_uuid[file.filename]})
+        response_data['fileId'] = file_to_uuid[file.filename]
+        print('exist file_uuid: ', response_data['fileId'])
+        return jsonify({'code': 1, 'msg': 'duplicated file', 'data': response_data})
     else:
-        return jsonify({'code': -1, 'msg': 'failed', 'uuid': ''})
+        return jsonify({'code': -1, 'msg': 'failed', 'data': {}})
 
 
 @model_bp.route('/fileRemove', methods=['POST'])
@@ -96,5 +112,14 @@ def apply_model():
 @model_bp.route('/create', methods=['POST'])
 def create_model():
     # TODO websocket.io 通信
-    pass
+    set_id = str(request.args['setId'])
+    params_dict = dict(request.args['params'])
+    model_config_dict = {
+        'in_chunk_len': params_dict['inWindowSize'],
+        'out_chunk_len': params_dict['outWindowSize'],
+        'epoch': params_dict['epochs'], # TODO 添加模型接口
+        'batch_size': params_dict['batchSize'],
+        'learning_rate': params_dict['learningRate'],
+    }
+    core_utils.create_and_train_model(set_id, model_config_dict)
     return jsonify({'code': -2, 'msg': 'not implement', 'data': None})

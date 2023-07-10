@@ -14,7 +14,9 @@ def login():
     user_name = request.json.get('username')
     pwd_hash = request.json.get('password')
     # ? DEBUG
+    print('--------------------')
     print('username: {}\npwd_hash: {}'.format(user_name, pwd_hash))
+    print('--------------------')
     # TODO pwd 解密
     user = get_user(user_name)
     if user is None:
@@ -23,7 +25,7 @@ def login():
     pass
     # TODO login user
     # login_user(user)
-    return jsonify({'code': '0', 'msg': 'login success', 'username': user_name})
+    return jsonify({'code': 0, 'msg': 'login success', 'data': user_name})
 
 
 @user_bp.route('/logout', methods=['POST'])
@@ -32,4 +34,4 @@ def logout():
     # TODO logout user
     # logout_user()
     pass
-    return jsonify({'code': '0', 'msg': 'logout success', 'username': user_name})
+    return jsonify({'code': 0, 'msg': 'logout success', 'data': user_name})
