@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import uuid
 from enum import Enum
 from datetime import datetime
 
@@ -10,6 +11,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from backend.settings import *
 from backend.extensions import db
 
+core_datadir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'core', 'new_data')
 
 class Admin(db.Model):
     """ 管理员 """
@@ -105,6 +107,7 @@ class PaddleModel(db.Model):
             print('------------------------------')
         desc_dict = {
             'id': self.id,
+            'name': 'model ' + str(self.id),
             'description': self.description,
             'in_chunk_len': self.in_chunk_len,
             'out_chunk_len': self.out_chunk_len,
@@ -191,21 +194,34 @@ class BindingModel(db.Model):
 class DatasetInfo(db.Model):
     """ 数据集 """
     id = db.Column(db.Integer, primary_key=True)
+    # TODO 增加 uuid 字段，建立 index
+    uuid = db.Column(db.String(32), nullable=False, unique=True)
     data_path = db.Column(db.String(128), nullable=False, unique=True)
     use_count = db.Column(db.Integer, default=0)
 
-    # TODO 考虑建立 index
+    # TODO 增加初始化参数
+    def __init__(self):
+        super(DatasetInfo, self).__init__()
+        self.uuid = uuid.uuid4().hex
+        self.data_path = os.path.join(core_datadir, self.uuid)
+        if not os.path.exists(self.data_path):
+            try:
+                os.mkdir(self.data_path)
+            except Exception as e:
+                print(str(e))
 
     # ? DEBUG
     def desc(self, verbose: bool = True):
         if verbose:
             print('------------------------------')
             print('Dataset   | ', self.id)
+            print('uuid      | ', self.uuid)
             print('data_path | ', self.data_path)
             print('use_count | ', self.use_count)
             print('------------------------------')
         desc_dict = {
             'id': self.id,
+            'uuid': self.uuid,
             'data_path': self.data_path,
             'use_count': self.use_count,
         }
