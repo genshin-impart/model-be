@@ -31,6 +31,7 @@ def cache_file(file):
 
 def remove_file(file):
     """ 删除缓存的文件 """
+    pass
 
 
 def concat_files(filename_list: list):
