@@ -139,7 +139,7 @@ def register_commands(app: Flask):
 def register_extensions(app: Flask):
     """ 扩展模块 """
     db.init_app(app) # init database
-    # sess.init_app(app) # init session
+    sess.init_app(app) # init session
 
 
 def register_blueprints(app: Flask):

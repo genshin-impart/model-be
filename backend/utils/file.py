@@ -3,6 +3,8 @@ import os
 import shutil
 import uuid
 
+import pandas as pd
+
 from backend.models import DatasetInfo
 from backend.extensions import db
 
@@ -19,14 +21,16 @@ def cache_file(file):
     pass
     # TODO 查找文件
     cached_files = os.listdir(cachedir)
+    cache_file_path = os.path.join(cachedir, file.filename) 
     if file.filename in cached_files: # 已经保存过
-        return 1, ''
+        return 1, '', cache_file_path
     try:
-        file.save(os.path.join(cachedir, file.filename))
+        file.save(cache_file_path)
         file_uuid = uuid.uuid1()
     except IOError as e:
-        return -1, ''
-    return 0, file_uuid
+        print(str(e))
+        return -1, '', ''
+    return 0, file_uuid, cache_file_path
 
 
 def remove_file(file):
@@ -34,30 +38,34 @@ def remove_file(file):
     pass
 
 
-def concat_files(filename_list: list):
-    """ 将上传的一个或多个文件组装成一组数据 """
-    cached_files = os.listdir(cachedir)
-    dset_path = os.path.join(datadir, uuid.uuid4().hex)
-    if not os.path.exists(dset_path):
-        os.mkdir(dset_path)
-    for filename in filename_list:
-        if filename not in cached_files:
-            raise "File not exists!"
-        # 移动文件 f_src --> f_dst (cache/filename.csv --> data/<random_numbers:32>/filename.csv)
-        f_src = os.path.join(cachedir, filename)
-        f_dst = os.path.join(dset_path, filename)
-        shutil.move(f_src, f_dst)
-    # 创建数据集
-    create_dset(dset_path)
+def merge_file_to_dset(cache_file_path: str, dset_data_path: str):
+    # TODO 增加 col 校验
+    if not os.path.exists(cache_file_path):
+        print("File not exists!")
+        return False
+    filename = os.path.basename(cache_file_path)
+    try:
+        shutil.move(cache_file_path, os.path.join(dset_data_path, filename))
+    except IOError as e:
+        print(str(e))
+        return False
+    return True
 
 
-def create_dset(dset_path: str):
+def create_dset():
     """ 创建新数据集 """
-    paddle_dset = DatasetInfo(data_path=dset_path)
-    if not paddle_dset.validate_files():
-        raise "Invalid file format!"
+    paddle_dset = DatasetInfo()
     db.session.add(paddle_dset)
     db.session.commit()
+    return paddle_dset
+
+
+def get_dset(set_uuid):
+    """ 查找数据集 (set_uuid) """
+    if set_uuid is None:
+        return None
+    paddle_dset = DatasetInfo.query.filter_by(uuid=set_uuid).first()
+    return paddle_dset
 
 
 def delete_dset(dset_path: str):
@@ -90,3 +98,16 @@ def delete_dset_byid(dset_id: int):
     shutil.rmtree(dset_path)
     db.session.delete(paddle_dset)
     db.session.commit()
+
+
+def preview_data(file_path: str):
+    df = pd.read_csv(file_path)
+    df_list = df.values.tolist()
+    return df_list[:5] # 预览前 5 行
+
+
+def get_file_columns(cache_file_path: str):
+    if cache_file_path == '':
+        return []
+    df = pd.read_csv(cache_file_path)
+    return list(df.columns)
