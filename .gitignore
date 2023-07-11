@@ -9,6 +9,7 @@ logs/
 
 # Cached files
 *__pycache__
+flask_session
 
 # Backup files
 bak/
