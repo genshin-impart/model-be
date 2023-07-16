@@ -6,7 +6,7 @@ from flask import url_for
 
 sys.path.append('..')
 
-from backend import create_app
+from backend.app import create_app
 from backend.extensions import db
 from backend.models import Admin
 
