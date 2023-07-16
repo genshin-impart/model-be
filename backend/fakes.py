@@ -4,8 +4,8 @@ import random
 from faker import Faker
 from sqlalchemy.exc import IntegrityError
 
-from backend.extensions import db
-from backend.models import Admin, User, PaddleModel, BindingModel
+from extensions import db
+from models import Admin, User, PaddleModel, BindingModel
 
 fake = Faker()
 

@@ -1,5 +1,5 @@
 .PHONY: run
-run:
+run: clean
 	python ./backend/app.py
 
 .PHONY: clean
