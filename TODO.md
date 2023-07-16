@@ -9,7 +9,7 @@
 ### 基础功能
 
 - [ ] 登录和会话管理
-- [ ] SocketIO room 设置
+- [x] SocketIO room 设置
 - [x] 单元测试补充
 
 ## 后续改进

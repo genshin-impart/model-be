@@ -164,12 +164,12 @@ threads_dict = {}  # <k, v>: <thread name, thread object>
 class ModelThread(threading.Thread):
 
     def __init__(self, cur_socketio, name, target=None):
-        threading.Thread.__init__(self, name=name)
+        threading.Thread.__init__(self, name=name) # name 同时也是 request.sid
         self.socketio = cur_socketio
         self.target = target
         self.running = True
         self.result = None
-        self.mode = None # 'train' or 'apply'
+        self.mode = None                           # 'train' or 'apply'
 
     def stop(self):
         self.running = False
@@ -180,10 +180,10 @@ class ModelThread(threading.Thread):
         for progress in range(100 + 1):
             time.sleep(0.1)
             # 发送进度
-            self.socketio.emit('progress', progress / 100.0)
+            self.socketio.emit('progress', progress / 100.0, to=self.name)
             if progress % 2 == 0:
                 # 发送日志
-                self.socketio.send('[Log] this is a log ...')
+                self.socketio.send('[Log] this is a log ...', to=self.name)
         # self.result = [[]] if self.target is None else self.target()
         # TODO 用真实数据填充，'train' 返回在整个数据集上的验证曲线值，'apply' 仅返回预测曲线值
         self.result = [
@@ -198,7 +198,7 @@ class ModelThread(threading.Thread):
             'type': 'train',    # 'train' or 'apply', depending on frontend message
             'data': self.result
         }
-        self.socketio.emit('done', done_payload)
+        self.socketio.emit('done', done_payload, to=self.name)
 
 
 @my_socketio.on('connect')
@@ -211,7 +211,7 @@ def handle_connect():
     # ? DEBUG
     print('cur_socket_id: ', cur_socket_id)
     server_msg = '[Server] Client connected.'
-    my_socketio.send(server_msg)
+    my_socketio.send(server_msg, to=request.sid)
     # ? DEBUG
     print(server_msg)
 
@@ -224,7 +224,7 @@ def handle_disconnect():
     threads_dict.pop(cur_socket_id)
     # TODO 资源释放，thread
     server_msg = '[Server] Client disconnected.'
-    my_socketio.send(server_msg)
+    my_socketio.send(server_msg, to=request.sid)
     # ? DEBUG
     print(server_msg)
 
@@ -235,7 +235,7 @@ def handle_run(data):
     t = threads_dict[cur_socket_id]
     t.start()
     server_msg = '[Run] Model mission start.'
-    my_socketio.send(server_msg)
+    my_socketio.send(server_msg, to=request.sid)
     # ? DEBUG
     print(server_msg)
     # TODO 处理负载，决定采用哪种运行方式 (train/apply)
