@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
 
-from backend.models import PaddleModel, BindingModel
-from backend.extensions import db
+from models import PaddleModel, BindingModel, DatasetInfo
+from extensions import db
 
 
 def get_model(model_id: int):
@@ -10,5 +10,11 @@ def get_model(model_id: int):
     return model
 
 
-def create_binding(model_id: int, file_path: str):
+def create_binding(task_params):
+    """创建一个运行任务
+    """
+    # TODO 解析传入的参数
+    # * apply mode
+    pass
+    # * train mode
     pass

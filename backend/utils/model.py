@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-from backend.models import PaddleModel
+from models import PaddleModel, DatasetInfo, BindingModel
 
 
 def get_all_models():

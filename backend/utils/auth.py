@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-from backend.models import User
+from models import User
 
 
 def get_user(username: str):

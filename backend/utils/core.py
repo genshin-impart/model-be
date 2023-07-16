@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
 
-from backend.models import DatasetInfo
-from backend.extensions import db
-
+from models import DatasetInfo
+from extensions import db
 
 basedir = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 coredir = os.path.join(basedir, 'model-core')
@@ -18,7 +17,6 @@ def create_and_train_model(set_id: str, model_config_dict: dict):
     if os.path.exists(data_dir):
         pass
     pass
-    
 
 
 if __name__ == '__main__':
