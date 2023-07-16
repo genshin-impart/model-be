@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
 import os
 
-from flask import redirect, request, url_for, abort, jsonify, session, Blueprint
+from flask import request, jsonify, session, Blueprint
 from flask_login import login_user, logout_user, login_required, current_user
 
-from backend.models import PaddleModel
-from backend.extensions import db, sess
-
-import backend.utils.create as c_utils
-import backend.utils.model as m_utils
-import backend.utils.file as f_utils
-import backend.utils.core as core_utils
+import utils.model as m_utils
+import utils.file as f_utils
 
 model_bp = Blueprint('model', __name__)
 
@@ -19,8 +14,18 @@ uuid_to_file = {}
 # * cached filename --> uuid
 file_to_uuid = {}
 
+blueprints_dir = os.path.dirname(__file__)
+cache_dir = os.path.join(os.path.dirname(blueprints_dir), 'cache')
+
 
 def update_map(uuid, filename: str, remove: bool = False):
+    """更新 uuid <-> filename 索引
+
+    Args:
+        uuid (_type_): _description_
+        filename (str): _description_
+        remove (bool, optional): 是否为删除操作. Defaults to False.
+    """
     if remove:     # 删除
         uuid_to_file.pop(uuid)
         file_to_uuid.pop(filename)
@@ -63,15 +68,17 @@ def choose_model():
 @model_bp.route('/fileUpload', methods=['POST'])
 def upload_file():
     file = request.files.get('file')
-    assert (file is not None) # TODO 完成后删除
+    if file is None:
+        return jsonify({'code': -1, 'msg': 'failed', 'data': {}})
     # ? DEBUG
     print("filename: {}".format(file.filename))
     # 保存文件到缓存路径
     return_code, file_uuid, cache_file_path = f_utils.cache_file(file)
     file_columns = f_utils.get_file_columns(cache_file_path)
     preview_data = f_utils.preview_data(cache_file_path)
-    merged_data = f_utils.preview_data(cache_file_path)
-    if return_code == 1: # 重复文件，从 file_to_uuid 索引表中获取
+    merged_data = f_utils.preview_data(cache_file_path, full=True)
+    # 重复文件，从 file_to_uuid 索引表中获取
+    if return_code == 1:
         file_uuid = file_to_uuid[file.filename]
     session['file_uuid'] = file_uuid
     # TODO 判断当前数据集是否存在
@@ -92,7 +99,8 @@ def upload_file():
         'setId': session['set_uuid'],
         'columns': file_columns,
         'preview': preview_data,
-        'merged': merged_data,  # TODO 暂定同 preview 字段
+                                      # TODO 暂定同 preview 字段
+        'merged': merged_data,
     }
     print('====================')
     print('return_code: ', return_code)
@@ -108,7 +116,8 @@ def upload_file():
         print('====================')
         print('file_to_uuid:\n', file_to_uuid)
         print('====================')
-        return jsonify({'code': 1, 'msg': 'duplicated file', 'data': response_data})
+                                      # TODO 重复文件处理
+        return jsonify({'code': 0, 'msg': 'duplicated file', 'data': response_data})
     else:
         return jsonify({'code': -1, 'msg': 'failed', 'data': {}})
 
@@ -117,33 +126,20 @@ def upload_file():
 def remove_file():
     file_id = request.args['id']
     # ? DEBUG
-    print("file_id: {}".format(file_id))
-    # TODO 从缓存路径中删除文件
-    pass
-    return jsonify({'code': -2, 'msg': 'not implement', 'data': None})
-
-
-@model_bp.route('/apply', methods=['POST'])
-def apply_model():
-    request_args = request.args.get()
+    file_name = uuid_to_file[file_id]
+    file_path = os.path.join(cache_dir, file_name)
     # ? DEBUG
-    print("request_args: {}".format(request_args))
-    # TODO
-    pass
-    return jsonify({'code': -2, 'msg': 'not implement', 'data': None})
-
-
-@model_bp.route('/create', methods=['POST'])
-def create_model():
-    # TODO websocket.io 通信
-    set_id = str(request.args['setId'])
-    params_dict = dict(request.args['params'])
-    model_config_dict = {
-        'in_chunk_len': params_dict['inWindowSize'],
-        'out_chunk_len': params_dict['outWindowSize'],
-        'epoch': params_dict['epochs'], # TODO 添加模型接口
-        'batch_size': params_dict['batchSize'],
-        'learning_rate': params_dict['learningRate'],
-    }
-    core_utils.create_and_train_model(set_id, model_config_dict)
-    return jsonify({'code': -2, 'msg': 'not implement', 'data': None})
+    print("====================")
+    print("file_id: {}".format(file_id))
+    print("file_name: {}".format(file_name))
+    print("file_path: {}".format(file_path))
+    print("====================")
+    # 从缓存路径中删除文件
+    return_code = f_utils.remove_file(file_path)
+    # TODO remove 后在 data 中传更新后的 merged 数据
+    if return_code == 0:
+        uuid_to_file.pop(file_id)
+        file_to_uuid.pop(file_name)
+        return jsonify({'code': 0, 'msg': 'success', 'data': None})
+    else:
+        return jsonify({'code': 1, 'msg': 'failed', 'data': None})

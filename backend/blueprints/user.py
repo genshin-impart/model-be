@@ -2,8 +2,8 @@
 from flask import redirect, request, url_for, abort, jsonify, Blueprint
 from flask_login import login_user, logout_user, login_required, current_user
 
-from backend.extensions import db
-from backend.utils.auth import get_user
+from extensions import db
+from utils.auth import get_user
 
 user_bp = Blueprint('user', __name__)
 
@@ -30,8 +30,8 @@ def login():
 
 @user_bp.route('/logout', methods=['POST'])
 def logout():
-    user_name = current_user.username
+    # user_name = current_user.username
     # TODO logout user
     # logout_user()
     pass
-    return jsonify({'code': 0, 'msg': 'logout success', 'data': user_name})
+    return jsonify({'code': 0, 'msg': 'logout success', 'data': "hhh"})
