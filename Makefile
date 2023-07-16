@@ -1,3 +1,7 @@
+.PHONY: run
+run:
+	python ./backend/app.py
+
 .PHONY: clean
 clean:
 	@rm -rf flask_session

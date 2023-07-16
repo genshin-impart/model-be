@@ -2,6 +2,7 @@
 # from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
+from flask_socketio import SocketIO
 from flask_cors import CORS
 
 # * 数据库配置
@@ -11,8 +12,7 @@ db = SQLAlchemy()
 sess = Session()
 
 # * SocketIO 配置
-# my_socketio = SocketIO()
+my_socketio = SocketIO()
 
 # * 垮域配置
-# cors = CORS(resources={"*": {"origins": "*"}})
 cors = CORS(resources=r'/*')
