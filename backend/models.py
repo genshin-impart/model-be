@@ -8,10 +8,11 @@ from flask import current_app
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from backend.settings import *
-from backend.extensions import db
+from settings import *
+from extensions import db
 
 core_datadir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'core', 'new_data')
+
 
 class Admin(db.Model):
     """ 管理员 """
