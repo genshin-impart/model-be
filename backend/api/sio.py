@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import time
+import json
 import threading
 
 from flask import request
 
+import api.model as model_api
 from extensions import my_socketio
 
 threads_dict = {}  # <k, v>: <thread name, thread object>
@@ -60,8 +62,6 @@ def handle_connect():
     print('cur_socket_id: ', cur_socket_id)
     server_msg = '[Server] Client connected.'
     my_socketio.send(server_msg, to=request.sid)
-    # ? DEBUG
-    print(server_msg)
 
 
 @my_socketio.on('disconnect')
@@ -73,8 +73,6 @@ def handle_disconnect():
     # TODO 资源释放，thread
     server_msg = '[Server] Client disconnected.'
     my_socketio.send(server_msg, to=request.sid)
-    # ? DEBUG
-    print(server_msg)
 
 
 @my_socketio.on('run')
@@ -84,14 +82,13 @@ def handle_run(data):
     t.start()
     server_msg = '[Run] Model mission start.'
     my_socketio.send(server_msg, to=request.sid)
-    # ? DEBUG
-    print(server_msg)
     # TODO 处理负载，决定采用哪种运行方式 (train/apply)
     # ? DEBUG
-    print('++++++++++ model run ++++++++++')
-    print(type(data))
-    print(data)
-    print('++++++++++ model run ++++++++++')
+    print('++++++++++ model params setting ++++++++++')
+    print('data:\n', json.dumps(data, indent=4))
+    print('++++++++++ model params setting ++++++++++')
+    # TODO 调用 api/model 中的方法解析参数
+    model_api.handle_model_params(data)
 
 
 @my_socketio.on('retry')

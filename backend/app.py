@@ -118,11 +118,11 @@ def register_commands(app: Flask):
 
     @app.cli.command()
     @click.option('--user', default=3, help='Quantity of users, default is 3.')
-    @click.option('--model', default=2, help='Quantity of models, default is 2.')
+    @click.option('--model', default=3, help='Quantity of models, default is 2.')
     @click.option('--bindings', default=0, help='Quantity of bindings, default is 0.')
     def forge(user, model, bindings):
         """Generate fake data."""
-        from backend.fakes import fake_admin, fake_users, fake_models, fake_bindings
+        from fakes import fake_admin, fake_users, fake_models, fake_bindings
 
         db.drop_all()
         db.create_all()
