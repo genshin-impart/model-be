@@ -49,6 +49,10 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(USERNAME_LEN), unique=True)
     pwd_hash = db.Column(db.String(128))
 
+    def update(self):
+        db.session.add(self)
+        db.session.commit()
+
     # ? DEBUG
     def desc(self, verbose: bool = True):
         if verbose:
@@ -84,31 +88,39 @@ class User(UserMixin, db.Model):
 class PaddleModel(db.Model):
     """ 模型 """
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64))
     description = db.Column(db.String(128))
     in_chunk_len = db.Column(db.Integer)
     out_chunk_len = db.Column(db.Integer)
     batch_size = db.Column(db.Integer, default=32)
     learning_rate = db.Column(db.Float, default=1e-3)
+    storage_path = db.Column(db.String(128))
 
     # TODO 模型参数字段设计
 
     def __init__(self, **kwargs):
         super(PaddleModel, self).__init__(**kwargs)
 
+    def update(self):
+        db.session.add(self)
+        db.session.commit()
+
     # ? DEBUG
     def desc(self, verbose: bool = True):
         if verbose:
             print('------------------------------')
             print('PaddleModel    | ', self.id)
+            print('name           | ', self.name)
             print('description    | ', self.description)
             print('in_chunk_len   | ', self.in_chunk_len)
             print('out_chunk_len  | ', self.out_chunk_len)
             print('batch_size     | ', self.batch_size)
             print('learning_rate  | ', self.learning_rate)
+            print('storage_path   | ', os.path.basename(self.storage_path))
             print('------------------------------')
         desc_dict = {
             'id': self.id,
-            'name': 'model ' + str(self.id),
+            'name': self.name,
             'description': self.description,
             'in_chunk_len': self.in_chunk_len,
             'out_chunk_len': self.out_chunk_len,
@@ -210,6 +222,10 @@ class DatasetInfo(db.Model):
                 os.mkdir(self.data_path)
             except Exception as e:
                 print(str(e))
+
+    def update(self):
+        db.session.add(self)
+        db.session.commit()
 
     # ? DEBUG
     def desc(self, verbose: bool = True):
