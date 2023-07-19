@@ -11,7 +11,7 @@ from paddlets.transform import StandardScaler
 # * Project modules
 from core.utils.my_configs import set_device, set_random_seed
 from core.modules.new_model import create_model
-from process import new_preprocess
+from api.process import new_preprocess
 
 
 def get_dset(data_path: str):

@@ -88,6 +88,8 @@ def handle_run(data):
     print('data:\n', json.dumps(data, indent=4))
     print('++++++++++ model params setting ++++++++++')
     # TODO 调用 api/model 中的方法解析参数
+    # ? DEBUG
+    print('++++++++++ model params parsed ++++++++++')
     model_api.handle_model_params(data)
 
 

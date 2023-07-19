@@ -21,8 +21,8 @@ from extensions import db, my_socketio
 from utils.model import get_paddle_model, get_paddle_dset
 from utils.data_process import merge_datafiles_dir
 
-from process import process_before_predict, new_output_control
-from train import generate_model
+from api.process import process_before_predict, new_output_control
+from api.train import generate_model
 
 # * Core modules
 from core.modules.new_model import create_model
