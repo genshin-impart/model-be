@@ -10,7 +10,7 @@ def get_all_models():
 
 
 def get_paddle_model(model_id: int):
-    model = PaddleModel.get(model_id)
+    model = PaddleModel.query.get(model_id)
     return model
 
 
