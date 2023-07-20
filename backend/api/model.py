@@ -67,17 +67,8 @@ class MyThread(threading.Thread):
         self.sio.emit('Done', self.result)
 
 
-def apply_model(params: dict, output_control: bool = False):
-    """运行模型。可以作为子进程启动。
-
-    Args:
-        model_id (int): 模型 id
-        set_id (int): 数据集 id
-    """
-    print(json.dumps(params, indent=4))
-    out_chunk_len = params['out_chunk_len']
-    storage_path = params['storage_path']
-    data_path = params['dset_data_path']
+def apply_model(out_chunk_len: int, storage_path: str, data_path: str, output_control: bool = False):
+    """运行模型。可以作为子进程启动。"""
     # TODO 合并数据集，在 DatasetInfo 中操作
     if not os.path.exists(data_path):
         raise "invalid data path!"
@@ -128,7 +119,7 @@ def apply_model(params: dict, output_control: bool = False):
     print('==================== result ====================')
     result = result[['DATATIME', 'ROUND(A.POWER,0)', 'YD15']]
     # TODO 保存到文件
-    pass
+    result.to_csv('result.csv', index=False)
     result['DATATIME'] = result['DATATIME'].apply(lambda x: pd.to_datetime(x, unit='s').strftime('%Y-%m-%d %H:%M:%S'))
     result_list = result.values.tolist()
     # ? DEBUG
