@@ -11,6 +11,7 @@ from base import BaseTestCase
 
 
 class CLITestCase(BaseTestCase):
+    """命令行测试用例"""
 
     def setUp(self):
         super(CLITestCase, self).setUp()

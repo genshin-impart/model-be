@@ -7,6 +7,7 @@ from base import BaseTestCase
 
 
 class BasicTestCase(BaseTestCase):
+    """基础测试用例"""
 
     def test_app_exist(self):
         self.assertFalse(current_app is None)

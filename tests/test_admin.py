@@ -13,6 +13,7 @@ from base import BaseTestCase
 
 
 class AdminTestCase(BaseTestCase):
+    """管理员测试用例"""
 
     def setUp(self):
         super(AdminTestCase, self).setUp()

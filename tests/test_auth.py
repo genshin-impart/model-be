@@ -9,6 +9,7 @@ from base import BaseTestCase
 
 
 class AuthTestCase(BaseTestCase):
+    """登录登出测试"""
 
     def test_login_user(self):
         response = self.login()

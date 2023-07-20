@@ -107,10 +107,19 @@ def delete_dset_byid(dset_id: int):
 
 
 def preview_data(file_path: str, full: bool = False):
+    """预览数据集
+
+    Args:
+        file_path (str): 数据集文件路径
+        full (bool, optional): 是否预览全部数据. Defaults to False.
+
+    Returns:
+        _type_: 数据集列表
+    """
     df = pd.read_csv(file_path)
+    df.fillna(0, inplace=True)
     df_list = df.values.tolist()
-    # TODO 如果是全部数据则对 NaN 进行处理
-    return df_list[:100] if full else df_list[:5] # 预览前 5 行
+    return df_list if full else df_list[:5] # 预览前 5 行
 
 
 def get_file_columns(cache_file_path: str):

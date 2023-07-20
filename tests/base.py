@@ -12,6 +12,7 @@ from backend.models import Admin
 
 
 class BaseTestCase(unittest.TestCase):
+    """测试基类"""
 
     def setUp(self):
         self.app = create_app('testing')
