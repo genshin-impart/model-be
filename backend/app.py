@@ -10,7 +10,7 @@ from flask import Flask, request
 from blueprints.user import user_bp
 from blueprints.model import model_bp
 from models import Admin, User, PaddleModel, BindingModel
-from extensions import db, sess, cors, my_socketio
+from extensions import login_manager, db, sess, cors, my_socketio
 from settings import configs
 
 # * SocketIO configs
@@ -117,8 +117,8 @@ def register_commands(app: Flask):
         click.echo('Done.')
 
     @app.cli.command()
-    @click.option('--user', default=3, help='Quantity of users, default is 3.')
-    @click.option('--model', default=3, help='Quantity of models, default is 2.')
+    @click.option('--user', default=4, help='Quantity of users, default is 4.')
+    @click.option('--model', default=3, help='Quantity of models, default is 3.')
     @click.option('--bindings', default=0, help='Quantity of bindings, default is 0.')
     def forge(user, model, bindings):
         """Generate fake data."""
@@ -144,6 +144,8 @@ def register_commands(app: Flask):
 
 def register_extensions(app: Flask):
     """ 扩展模块 """
+    # init login_manager
+    login_manager.init_app(app)
     # init database
     db.init_app(app)
     # init session

@@ -11,27 +11,30 @@ user_bp = Blueprint('user', __name__)
 @user_bp.route('/login', methods=['POST'])
 def login():
     # assert (not current_user.is_authenticated)
-    user_name = request.json.get('username')
-    pwd_hash = request.json.get('password')
+    username = request.json.get('username')
+    password = request.json.get('password')
     # ? DEBUG
     print('--------------------')
-    print('username: {}\npwd_hash: {}'.format(user_name, pwd_hash))
+    print('username: ', username)
+    print('password: ', password)
     print('--------------------')
-    # TODO pwd 解密
-    user = get_user(user_name)
+    user = get_user(username)
     if user is None:
-        pass
-    # TODO check password
-    pass
-    # TODO login user
-    # login_user(user)
-    return jsonify({'code': 0, 'msg': 'login success', 'data': user_name})
+        print(f'user {username} not found!')
+        return jsonify({'code': 1, 'msg': 'user not found', 'data': username})
+    # check password
+    if not user.validate_password(password):
+        print(f'user {username} password error!')
+        return jsonify({'code': 1, 'msg': 'password error', 'data': username})
+    # login user
+    login_user(user)
+    return jsonify({'code': 0, 'msg': 'login success', 'data': username})
 
 
 @user_bp.route('/logout', methods=['POST'])
 def logout():
-    # user_name = current_user.username
+    # username = current_user.username
+    # print('username: ', username)
     # TODO logout user
-    # logout_user()
-    pass
+    logout_user()
     return jsonify({'code': 0, 'msg': 'logout success', 'data': "hhh"})

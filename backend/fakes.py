@@ -22,6 +22,9 @@ def fake_admin():
 
 
 def fake_users():
+    admin_user = User(username='admin')
+    admin_user.set_password('admin')
+
     user1 = User(username='clzh')
     user1.set_password('123456')
 
@@ -31,6 +34,7 @@ def fake_users():
     user3 = User(username='wdh')
     user3.set_password('654321')
 
+    db.session.add(admin_user)
     db.session.add(user1)
     db.session.add(user2)
     db.session.add(user3)

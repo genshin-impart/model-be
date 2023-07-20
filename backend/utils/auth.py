@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
-
 from models import User
 
 
