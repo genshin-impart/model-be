@@ -29,25 +29,6 @@ from api.train import generate_model
 # * Core modules
 from core.modules.new_model import create_model
 
-# ==================== configs ====================
-# * Directory configs
-basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-coredir = os.path.join(basedir, 'core')
-modeldir = os.path.join(coredir, 'model')
-
-
-def random_str(rand_len: int = 8):
-    """生成随机定长字符串
-
-    Args:
-        rand_len (int, optional): 随机字符串长度. Defaults to 8.
-
-    Returns:
-        str: 随机生成的定长字符串
-    """
-    chars = string.ascii_letters + string.digits
-    return ''.join(random.choices(chars, k=rand_len))
-
 
 class MyThread(threading.Thread):
 
@@ -128,35 +109,25 @@ def apply_model(out_chunk_len: int, storage_path: str, data_path: str, output_co
     return result_list
 
 
-def train_model(set_id: int, params: dict):
-    dset = get_paddle_dset(set_id)
-    if dset is None:
-        print(f'Error: set with uuid {set_id} not found!')
-        return None
-    # 创建模型并训练
-    new_model = PaddleModel(
-        name=params['name'],
-        description=params['description'],
-        in_chunk_len=params['inWindowSize'],
-        out_chunk_len=params['outWindowSize'],
-        learning_rate=params['learningRate'],
-        batch_size=params['batchSize'],
-    )
-    try:
-        new_model.update()
-    except Exception as e:
-        print(f"Error: create new model {params['name']} failed!")
-        print(str(e))
-        return None
-    # 配置存储路径
-    storage_path = random_str()
-    while storage_path in os.listdir(modeldir):
-        storage_path = random_str()
-    new_model.storage_path = os.path.join(modeldir, storage_path)
-    new_model.update()
+# TODO 修改参数列表
+def train_model(
+    data_path: str, storage_path: str, name: str, description: str, in_chunk_len: int, out_chunk_len: int,
+    learning_rate: float, batch_size: int, epochs: int
+):
     # TODO 训练模型
-    data_path = os.path.join(dset.data_path, os.listdir(dset.data_path)[0])
+    data_path = os.path.join(data_path, os.listdir(data_path)[0])
+    params = {
+        'inWindowSize': in_chunk_len,
+        'outWindowSize': out_chunk_len,
+        'learningRate': learning_rate,
+        'batchSize': batch_size,
+        'epochs': epochs
+    }
     new_paddle_model = generate_model(data_path, params)
-    new_paddle_model.save(new_model.storage_path)
+    print('new model will be saved to: ', storage_path)
+    new_paddle_model.save(storage_path)
+    # ? DEBUG
+    print('new model has been saved to: ', storage_path)
+    print('模型训练完毕！')
     # TODO 返回验证集上的结果
     return [[]]

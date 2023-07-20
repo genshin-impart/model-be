@@ -2,6 +2,11 @@
 run: clean
 	python ./backend/app.py
 
+.PHONY: init
+init: clean
+	flask --app backend/app initdb --drop
+	flask --app backend/app forge
+
 .PHONY: clean
 clean:
 	@rm -rf flask_session
