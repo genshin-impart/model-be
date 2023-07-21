@@ -46,7 +46,6 @@ if __name__ == '__main__':
         sys.argv[4]: in_chunk_len
         sys.argv[5]: out_chunk_len
         """
-        # TODO
         realtime_predict(
             storage_path=sys.argv[2],
             csv_path=sys.argv[3],

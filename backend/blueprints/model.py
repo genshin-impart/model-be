@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-from flask import request, jsonify, session, Blueprint
+from flask import request, jsonify, session, Blueprint, send_file
 from flask_login import login_user, logout_user, login_required, current_user
 
 import utils.model as m_utils
@@ -36,6 +36,7 @@ def update_map(uuid, filename: str, remove: bool = False):
 
 @model_bp.route('/list', methods=['GET'])
 def fetch_model_list():
+    """获取模型列表"""
     page_size = int(request.args['pageSize'])
     page_num = int(request.args['pageNum'])
     # ? DEBUG
@@ -57,6 +58,7 @@ def fetch_model_list():
 
 @model_bp.route('/choose', methods=['POST'])
 def choose_model():
+    """获取指定模型的信息"""
     model_id = int(request.args['id'])
     # ? DEBUG
     print("choose model id: {}".format(model_id))
@@ -67,6 +69,7 @@ def choose_model():
 
 @model_bp.route('/fileUpload', methods=['POST'])
 def upload_file():
+    """上传文件"""
     file = request.files.get('file')
     if file is None:
         return jsonify({'code': -1, 'msg': 'failed', 'data': {}})
@@ -99,7 +102,6 @@ def upload_file():
         'setId': session['set_uuid'],
         'columns': file_columns,
         'preview': preview_data,
-                                      # TODO 暂定同 preview 字段
         'merged': merged_data,
     }
     print('====================')
@@ -116,7 +118,7 @@ def upload_file():
         print('====================')
         print('file_to_uuid:\n', file_to_uuid)
         print('====================')
-                                      # TODO 重复文件处理
+        # TODO 重复文件处理
         return jsonify({'code': 0, 'msg': 'duplicated file', 'data': response_data})
     else:
         return jsonify({'code': -1, 'msg': 'failed', 'data': {}})
@@ -158,3 +160,10 @@ def remove_file():
         return jsonify({'code': 0, 'msg': 'success', 'data': {'merged': merged_data}})
     else:
         return jsonify({'code': 1, 'msg': 'failed', 'data': None})
+
+
+@model_bp.route('/fileDownload')
+def download_csv():
+    # TODO 修改为唯一路径
+    file_path = 'result.csv'
+    return send_file(file_path, as_attachment=True)

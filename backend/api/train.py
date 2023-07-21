@@ -31,12 +31,13 @@ def get_dset(data_path: str):
     return df
 
 
-def generate_model(data_path: str, params: dict, window_size: int = 172):
+def generate_model(data_path: str, params: dict):
     set_device()
     set_random_seed()
     df = get_dset(data_path)
     # 预处理
-    df, _ = new_preprocess(df)
+    window_size = params['inWindowSize']
+    df, _ = new_preprocess(df, window_size)
     # 移位
     df['ROUND(A.WS,1)'] = df['ROUND(A.WS,1)'].shift(window_size).astype(np.float)
     df['ROUND(A.POWER,0)'] = df['ROUND(A.POWER,0)'].shift(window_size).astype(np.float)

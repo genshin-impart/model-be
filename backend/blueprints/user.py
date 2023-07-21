@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from flask import redirect, request, url_for, abort, jsonify, Blueprint
+from flask import redirect, request, url_for, abort, jsonify, Blueprint, session
 from flask_login import login_user, logout_user, login_required, current_user
 
-from extensions import db
+from extensions import db, sess
 from utils.auth import get_user
 
 user_bp = Blueprint('user', __name__)
@@ -10,7 +10,7 @@ user_bp = Blueprint('user', __name__)
 
 @user_bp.route('/login', methods=['POST'])
 def login():
-    # assert (not current_user.is_authenticated)
+    """用户登录"""
     username = request.json.get('username')
     password = request.json.get('password')
     # ? DEBUG
@@ -18,6 +18,7 @@ def login():
     print('username: ', username)
     print('password: ', password)
     print('--------------------')
+    # get user
     user = get_user(username)
     if user is None:
         print(f'user {username} not found!')
@@ -33,8 +34,9 @@ def login():
 
 @user_bp.route('/logout', methods=['POST'])
 def logout():
-    # username = current_user.username
-    # print('username: ', username)
-    # TODO logout user
+    """用户登出"""
+    # logout user
     logout_user()
+    # clear session
+    session.clear()
     return jsonify({'code': 0, 'msg': 'logout success', 'data': "hhh"})

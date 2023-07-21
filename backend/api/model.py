@@ -100,8 +100,9 @@ def apply_model(out_chunk_len: int, storage_path: str, data_path: str, output_co
     result.rename(columns={"index": "DATATIME"}, inplace=True)
     print('==================== result ====================')
     result = result[['DATATIME', 'ROUND(A.POWER,0)', 'YD15']]
-    # TODO 保存到文件
+    # TODO 保存到文件（设置唯一路径）
     result.to_csv('result.csv', index=False)
+    # result.to_csv(os.path.join(data_path, 'result.csv'), index=False)
     result['DATATIME'] = result['DATATIME'].apply(lambda x: pd.to_datetime(x, unit='s').strftime('%Y-%m-%d %H:%M:%S'))
     result_list = result.values.tolist()
     # ? DEBUG
