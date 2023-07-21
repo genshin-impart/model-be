@@ -134,12 +134,27 @@ def remove_file():
     print("file_name: {}".format(file_name))
     print("file_path: {}".format(file_path))
     print("====================")
+    if session.get('set_uuid', 'unknown') == 'unknown':
+        print(f'Error: dataset not found!')
+        return jsonify({'code': 1, 'msg': 'failed', 'data': None})
+    else:
+        cur_dset = f_utils.get_dset(session['set_uuid'])
+        if cur_dset is None:
+            print("Dataset not found!")
+        else:
+            f_utils.remove_file_from_dset(file_path, cur_dset.data_path)
     # 从缓存路径中删除文件
     return_code = f_utils.remove_file(file_path)
     # TODO remove 后在 data 中传更新后的 merged 数据
     if return_code == 0:
         uuid_to_file.pop(file_id)
         file_to_uuid.pop(file_name)
-        return jsonify({'code': 0, 'msg': 'success', 'data': None})
+        merged_path = os.listdir(cur_dset.data_path)
+        print(f'merged_path: {merged_path}')
+        merged_file = merged_path[0] if merged_path != [] else None
+        merged_data = f_utils.preview_data(
+            os.path.join(cur_dset.data_path, merged_file), full=True
+        ) if merged_file is not None else None
+        return jsonify({'code': 0, 'msg': 'success', 'data': {'merged': merged_data}})
     else:
         return jsonify({'code': 1, 'msg': 'failed', 'data': None})

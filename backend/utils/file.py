@@ -55,6 +55,21 @@ def merge_file_to_dset(cache_file_path: str, dset_data_path: str):
     except IOError as e:
         print(str(e))
         return False
+    print(f'File {filename} merged to dataset {dset_data_path}')
+    return True
+
+
+def remove_file_from_dset(cache_file_path: str, dset_data_path: str):
+    if not os.path.exists(cache_file_path):
+        print("File not exists!")
+        return False
+    filename = os.path.basename(cache_file_path)
+    try:
+        os.remove(os.path.join(dset_data_path, filename))
+    except IOError as e:
+        print(str(e))
+        return False
+    print(f'File {filename} removed from dataset {dset_data_path}')
     return True
 
 
