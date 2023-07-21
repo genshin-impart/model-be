@@ -67,10 +67,29 @@ def fake_models():
         batch_size=32,
         storage_path=os.path.join(modeldir, 'model_of_11')
     )
+    # 使用 11.csv 生成的模型，用于测试 realtime 功能
+    model4 = PaddleModel(
+        name='11.csv model (window size 24)',
+        description='11 号风机集成模型 (窗口大小 24)',
+        in_chunk_len=24,
+        out_chunk_len=24,
+        batch_size=32,
+        storage_path=os.path.join(modeldir, 'model_of_11_24')
+    )
+    model5 = PaddleModel(
+        name='11.csv model (window size 4)',
+        description='11 号风机集成模型 (窗口大小 4)',
+        in_chunk_len=4,
+        out_chunk_len=4,
+        batch_size=32,
+        storage_path=os.path.join(modeldir, 'model_of_11_4')
+    )
 
     db.session.add(model1)
     db.session.add(model2)
     db.session.add(model3)
+    db.session.add(model4)
+    db.session.add(model5)
     db.session.commit()
 
 

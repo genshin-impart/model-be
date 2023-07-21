@@ -71,7 +71,8 @@ def apply_model(out_chunk_len: int, storage_path: str, data_path: str, output_co
     test_df.drop_duplicates(subset=['DATATIME'], keep='first', inplace=True)
     # TODO 使用 out_chunk_len
     tail_mask = test_df.tail(out_chunk_len)
-    test_df, popt = process_before_predict(test_df)
+    # TODO 修改为 in_chunk_len
+    test_df, popt = process_before_predict(test_df, out_chunk_len)
     # 构造测试集
     test_dataset = TSDataset.load_from_dataframe(
         test_df,
@@ -131,3 +132,61 @@ def train_model(
     print('模型训练完毕！')
     # TODO 返回验证集上的结果
     return [[]]
+
+
+def realtime_predict(
+    storage_path: str, csv_path: str, in_chunk_len: int, out_chunk_len: int, output_control: bool = False
+):
+    """滚动预测。可以作为子进程启动。"""
+    # 读取数据集
+    test_df = pd.read_csv(
+        csv_path,
+        parse_dates=['DATATIME'],
+        infer_datetime_format=True,
+        dayfirst=True,
+        dtype={
+            'WINDDIRECTION': np.float,
+            'HUMIDITY': np.float,
+            'PRESSURE': np.float,
+        }
+    )
+    # 预处理
+    test_df.drop_duplicates(subset=['DATATIME'], keep='first', inplace=True)
+    print(f'len of test_df: {len(test_df)}')
+    print(test_df)
+    if len(test_df) < in_chunk_len:
+        return False
+    # TODO 使用 out_chunk_len
+    tail_mask = test_df.tail(out_chunk_len)
+    # TODO 修改为 in_chunk_len
+    test_df, popt = process_before_predict(test_df, out_chunk_len)
+    # 构造测试集
+    test_dataset = TSDataset.load_from_dataframe(
+        test_df,
+        time_col='DATATIME',
+        target_cols=['ROUND(A.WS,1)', 'ROUND(A.POWER,0)', 'YD15'],
+        observed_cov_cols=['WINDSPEED', 'PREPOWER', 'WINDDIRECTION', 'TEMPERATURE', 'HUMIDITY', 'PRESSURE'],
+        freq='15min',
+        fill_missing_dates=True,
+        fillna_method='pre'
+    )
+    # 归一化
+    scaler = StandardScaler()
+    scaler.fit(test_dataset)
+    test_dataset_scaled = scaler.transform(test_dataset)
+    # * 加载模型，默认使用集成模型
+    loaded_model0 = load(os.path.join(storage_path, 'paddlets-ensemble-model0'))
+    loaded_model1 = load(os.path.join(storage_path, 'paddlets-ensemble-model1'))
+    res0 = scaler.inverse_transform(loaded_model0.predict(test_dataset_scaled))
+    res1 = scaler.inverse_transform(loaded_model1.predict(test_dataset_scaled))
+    result = res0.to_dataframe() * 0.5 + res1.to_dataframe() * 0.5
+    # 输出控制
+    if output_control:
+        result = new_output_control(result, tail_mask, popt)
+    result.reset_index(inplace=True)
+    result.rename(columns={"index": "DATATIME"}, inplace=True)
+    print('==================== result ====================')
+    result = result[['DATATIME', 'ROUND(A.POWER,0)', 'YD15']]
+    res_path = os.path.join(os.path.dirname(csv_path), 'res.csv')
+    result.to_csv(res_path, index=False)
+    return True

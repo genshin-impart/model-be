@@ -20,6 +20,7 @@ def transfer_datafiles(data_dir: str):
 def merge_datafiles_dir(data_dir: str):
     files = os.listdir(data_dir)
     if len(files) == 1:
+        print('Only one file, no need to merge.')
         # 只有一个文件，直接返回
         return
     # TODO 合并文件

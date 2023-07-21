@@ -11,7 +11,7 @@ import pandas as pd
 from models import PaddleModel
 
 
-def redirect_output_to_socketio(process, cur_sio, cur_sid, mode: str):
+def redirect_output_to_socketio(process, cur_sio, cur_sid, mode: str, csv_path: str = ""):
     """重定向子进程输出到 SocketIO
 
     Args:
@@ -29,6 +29,18 @@ def redirect_output_to_socketio(process, cur_sio, cur_sid, mode: str):
     if mode == 'train':
         done_payload = {'type': 'train', 'data': [[]]}
         cur_sio.emit('done', done_payload, to=cur_sid)
+        return
+    elif mode == 'realtime':
+        # TODO
+        res_path = os.path.join(os.path.dirname(csv_path), 'res.csv')
+        if os.path.exists(res_path):
+            print(f'[Server] res.csv exists, sending data ...')
+            df = pd.read_csv(res_path)
+            data_payload = {'code': 0, 'data': df.values.tolist()[0]}
+        else:
+            print(f'[Server] res.csv does not exist, sending empty data ...')
+            data_payload = {'code': 2, 'data': None}
+        cur_sio.emit('data', data_payload, to=cur_sid)
         return
     # TODO 从路径读取返回值
     result = pd.read_csv(
@@ -56,6 +68,7 @@ def start_subprocess_with_output_redirection(cur_sio, cur_sid, mode: str, params
     # 启动子进程
     # ? DEBUG
     print(json.dumps(params, indent=4))
+    # * 应用模型
     if mode == 'apply':
         out_chunk_len = params['out_chunk_len']
         storage_path = params['storage_path']
@@ -63,13 +76,20 @@ def start_subprocess_with_output_redirection(cur_sio, cur_sid, mode: str, params
         # ? DEBUG
         process = subprocess.Popen(['pwd'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
         process = subprocess.Popen(
-            ['python', './backend/sub_entry.py', 'apply',
-             str(out_chunk_len), storage_path, data_path],
+            [
+                'python',
+                './backend/sub_entry.py',
+                'apply',
+                str(out_chunk_len),
+                storage_path,
+                data_path,
+            ],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             universal_newlines=True,
         )
-    else:
+    # * 训练模型
+    elif mode == 'train':
         # TODO 填充参数
         name = params['name']
         description = params.get('description', params['name'])
@@ -83,17 +103,50 @@ def start_subprocess_with_output_redirection(cur_sio, cur_sid, mode: str, params
 
         process = subprocess.Popen(
             [
-                'python', './backend/sub_entry.py', 'train', data_path, model_storage_path, name, description,
+                'python',
+                './backend/sub_entry.py',
+                'train',
+                data_path,
+                model_storage_path,
+                name,
+                description,
                 str(in_chunk_len),
                 str(out_chunk_len),
                 str(learning_rate),
                 str(batch_size),
-                str(epochs)
+                str(epochs),
             ],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             universal_newlines=True
         )
+    # * 滚动预测
+    elif mode == 'realtime':
+        storage_path = params['storage_path']
+        csv_path = params['csv_path']
+        in_chunk_len = params['in_chunk_len']
+        out_chunk_len = params['out_chunk_len']
+
+        process = subprocess.Popen(
+            [
+                'python',
+                './backend/sub_entry.py',
+                'realtime',
+                storage_path,
+                csv_path,
+                str(in_chunk_len),
+                str(out_chunk_len),
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True
+        )
+
+        t = threading.Thread(target=redirect_output_to_socketio, args=(process, cur_sio, cur_sid, mode, csv_path))
+        t.start()
+        return
+    else:
+        print(f'Error: invalid mode {mode}!')
     # 创建一个单独的线程来读取子进程的输出，以避免阻塞，并发送到 SocketIO
     t = threading.Thread(target=redirect_output_to_socketio, args=(process, cur_sio, cur_sid, mode))
     t.start()

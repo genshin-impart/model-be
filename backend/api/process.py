@@ -58,7 +58,7 @@ def new_datafit(df: pd.DataFrame):
     return df, popt
 
 
-def new_preprocess(df: pd.DataFrame):
+def new_preprocess(df: pd.DataFrame, window_size: int):
     # 数据预处理
     df = df[[
         'DATATIME', 'WINDSPEED', 'PREPOWER', 'WINDDIRECTION', 'TEMPERATURE', 'HUMIDITY', 'PRESSURE', 'ROUND(A.WS,1)',
@@ -68,8 +68,8 @@ def new_preprocess(df: pd.DataFrame):
     df.sort_values(by='DATATIME', ascending=True, inplace=True)
     # ----------------------------------------
     len = df.index.size
-    if len >= 172:
-        middle_size = len % 172
+    if len >= window_size:
+        middle_size = len % window_size
         middle_mask = df.head(middle_size).index
         df.drop(middle_mask, inplace=True)
     df.set_index('DATATIME', inplace=True)
@@ -78,7 +78,7 @@ def new_preprocess(df: pd.DataFrame):
     return df, popt
 
 
-def new_feature_engineer(df: pd.DataFrame, window_size: int = 172):
+def new_feature_engineer(df: pd.DataFrame, window_size: int):
     df['ROUND(A.WS,1)'] = df['ROUND(A.WS,1)'].shift(periods=window_size).astype(np.float)
     df['ROUND(A.POWER,0)'] = df['ROUND(A.POWER,0)'].shift(periods=window_size).astype(np.float)
     df['YD15'] = df['YD15'].shift(periods=window_size).astype(np.float)
@@ -87,11 +87,13 @@ def new_feature_engineer(df: pd.DataFrame, window_size: int = 172):
     return df
 
 
-def process_before_predict(df: pd.DataFrame):
+def process_before_predict(df: pd.DataFrame, window_size: int):
+    if len(df) < 1000:
+        return df, None
     # 预处理
-    df, popt = new_preprocess(df)
+    df, popt = new_preprocess(df, window_size)
     # 特征工程
-    df = new_feature_engineer(df)
+    df = new_feature_engineer(df, window_size)
     return df, popt
 
 
