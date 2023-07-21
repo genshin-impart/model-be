@@ -134,7 +134,7 @@ def preview_data(file_path: str, full: bool = False):
     df = pd.read_csv(file_path)
     df.fillna(0, inplace=True)
     df_list = df.values.tolist()
-    return df_list if full else df_list[:5] # 预览前 5 行
+    return df_list if full else df_list[:min(5, len(df_list))] # 预览前 5 行
 
 
 def get_file_columns(cache_file_path: str):

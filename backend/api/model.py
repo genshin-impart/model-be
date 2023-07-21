@@ -153,7 +153,8 @@ def realtime_predict(
     # 预处理
     test_df.drop_duplicates(subset=['DATATIME'], keep='first', inplace=True)
     print(f'len of test_df: {len(test_df)}')
-    print(test_df)
+    # ? DEBUG
+    # print(test_df)
     if len(test_df) < in_chunk_len:
         return False
     # TODO 使用 out_chunk_len

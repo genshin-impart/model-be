@@ -81,7 +81,7 @@ def handle_disconnect():
     # TODO 资源释放
     if cur_socket_id in csv_dict.keys():
         csv_data_path = csv_dict[cur_socket_id]
-        shutil.rmtree(csv_data_path)
+        shutil.rmtree(os.path.join(csvdir, csv_data_path))
         shutil.rmtree(os.path.join(os.path.dirname(csv_data_path), 'res.csv'))
         csv_dict.pop(cur_socket_id)
     server_msg = '[Server] Client disconnected.'

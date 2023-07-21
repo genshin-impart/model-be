@@ -36,7 +36,10 @@ def redirect_output_to_socketio(process, cur_sio, cur_sid, mode: str, csv_path: 
         if os.path.exists(res_path):
             print(f'[Server] res.csv exists, sending data ...')
             df = pd.read_csv(res_path)
-            data_payload = {'code': 0, 'data': df.values.tolist()[0]}
+            data_list = df.values.tolist()[0]
+            for _ in range(7):
+                data_list.insert(1, None)
+            data_payload = {'code': 0, 'data': data_list}
         else:
             print(f'[Server] res.csv does not exist, sending empty data ...')
             data_payload = {'code': 2, 'data': None}
@@ -52,10 +55,14 @@ def redirect_output_to_socketio(process, cur_sio, cur_sid, mode: str, csv_path: 
     print(result.head())
     result['DATATIME'] = result['DATATIME'].apply(lambda x: pd.to_datetime(x, unit='s').strftime('%Y-%m-%d %H:%M:%S'))
     result_list = result.values.tolist()
+    # 补充 None
+    for row in result_list:
+        for _ in range(7):
+            row.insert(1, None)
     # TODO 运行完成，发送 done 事件
     done_payload = {'type': mode, 'data': result_list}
     # ? DEBUG
-    print(result_list[:5])
+    print(result_list[:min(5, len(result_list))])
     cur_sio.emit('done', done_payload, to=cur_sid)
 
 
